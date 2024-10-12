@@ -92,3 +92,9 @@ body {
     background-color: #7b9a7a;
     color: #ffffff;
 }
+
+#winner-message {
+    font-size: 2rem;
+    margin: 20px;
+    display: none;
+}
