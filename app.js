@@ -4,6 +4,7 @@ const playAgainButton = document.getElementById('play-again');
 const scoreXDisplay = document.getElementById('score-x');
 const scoreODisplay = document.getElementById('score-o');
 const winningConditionText = document.querySelector('.winning-condition');
+const winnerMessage = document.getElementById('winner-message');
 
 let board = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
@@ -23,35 +24,30 @@ const winningConditions = [
 ];
 
 function handleClick(index) {
-    // Preventing a click on an already filled box
     if (board[index] !== '' || checkWin()) return;
 
     board[index] = currentPlayer;
     boxes[index].innerText = currentPlayer;
 
-    // Check if the current player has won
     if (checkWin()) {
         highlightWinningCombination();
-        // Update the score
         if (currentPlayer === 'X') {
             scoreX++;
             scoreXDisplay.innerText = scoreX;
-            winningConditionText.innerText = `X Wins this round!`;
+            checkOverallWinner('X');
         } else {
             scoreO++;
             scoreODisplay.innerText = scoreO;
-            winningConditionText.innerText = `O Wins this round!`;
+            checkOverallWinner('O');
         }
-        // Check for overall winner
-        checkOverallWinner();
-    } else if (board.every(box => box !== '')) {
-        // Check for a tie
-        winningConditionText.innerText = 'It\'s a tie!';
-    } else {
-        // Switch turns
-        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-        turnDisplay.innerText = `${currentPlayer}'s Turn`; // Updated turn display
     }
+
+    if (board.every(box => box !== '') && !checkWin()) {
+        endGame("It's a Tie!");
+    }
+
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    turnDisplay.innerText = `${currentPlayer}'s Turn`;
 }
 
 function checkWin() {
@@ -72,49 +68,56 @@ function highlightWinningCombination() {
     });
 }
 
+function checkOverallWinner(player) {
+    if (scoreX >= winningScore) {
+        endGame(`X Wins the Game!`);
+    } else if (scoreO >= winningScore) {
+        endGame(`O Wins the Game!`);
+    } else {
+        playAgainButton.style.display = 'block';
+    }
+}
+
+function endGame(message) {
+    document.getElementById('game-board').style.display = 'none';
+    winnerMessage.innerText = message;
+    winnerMessage.style.display = 'block';
+    playAgainButton.style.display = 'block';
+    document.querySelector('.score-board').style.display = 'none';
+    turnDisplay.style.display = 'none';
+    winningConditionText.style.display = 'none';
+}
+
 function resetGame() {
-    // Reset the board for a new round but keep the scores
     board = ['', '', '', '', '', '', '', '', ''];
     boxes.forEach(box => {
         box.innerText = '';
         box.classList.remove('winner');
     });
     currentPlayer = 'X';
-    turnDisplay.innerText = `${currentPlayer}'s Turn`; // Updated turn display
-    winningConditionText.innerText = 'Winning Condition: First to 5 points'; // Reset winning condition message
-    playAgainButton.style.display = 'none'; // Hide Play Again button until needed
+    turnDisplay.innerText = `${currentPlayer}'s Turn`;
+    winningConditionText.innerText = 'First to score 5 wins';
+    document.getElementById('game-board').style.display = 'grid';
+    winnerMessage.style.display = 'none';
+    playAgainButton.style.display = 'none';
+    document.querySelector('.score-board').style.display = 'flex';
+    turnDisplay.style.display = 'block';
+    winningConditionText.style.display = 'block';
 }
 
-function displayOverallWinner(winner) {
-    // Hide game board and display winner
-    turnDisplay.innerText = `${winner} wins the game!`; // Show the overall winner
-    winningConditionText.innerText = ''; // Clear the winning condition message
-    playAgainButton.style.display = 'block'; // Show the Play Again button
-}
-
-function checkOverallWinner() {
-    if (scoreX === winningScore) {
-        displayOverallWinner('X');
-    } else if (scoreO === winningScore) {
-        displayOverallWinner('O');
-    } else {
-        // Show the Play Again button after each round
-        playAgainButton.style.display = 'block';
-    }
-}
-
-// Attach event listeners to each box
 boxes.forEach((box, index) => {
     box.addEventListener('click', () => handleClick(index));
 });
 
-// Attach event listener for the Play Again button
 playAgainButton.addEventListener('click', () => {
-    // Reset the game board for a new round but keep the scores
-    resetGame(); // Reset the game board
-    document.getElementById('game-board').style.display = 'grid'; // Show the game board
-    turnDisplay.innerText = `X's Turn`; // Reset turn display
+    if (scoreX >= winningScore || scoreO >= winningScore) {
+        scoreX = 0;
+        scoreO = 0;
+        scoreXDisplay.innerText = scoreX;
+        scoreODisplay.innerText = scoreO;
+    }
+    resetGame();
+    winnerMessage.style.display = 'none';
 });
 
-// Initialize the game on load
 resetGame();
